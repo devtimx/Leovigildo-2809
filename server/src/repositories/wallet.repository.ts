@@ -51,7 +51,7 @@ class WalletRepository {
 
     wallets[index].balance += amount;
     wallets[index].updatedAt = new Date().toISOString();
-    
+
     await this._writeAll(wallets);
     return wallets[index];
   }
@@ -101,6 +101,23 @@ class WalletRepository {
     await this._writeAll(wallets);
     return wallets[index];
   }
+
+  async resolveWalletBet(userId: string, isWinner: boolean, payoutAmount: number): Promise<void> {
+    const wallets = await this._readAll();
+    const index = wallets.findIndex(w => w.userId === userId);
+    if (index === -1) return;
+
+    if (isWinner) {
+      wallets[index].balance += payoutAmount;
+      wallets[index].betsWon += 1;
+    } else {
+      wallets[index].betsLost += 1;
+    }
+
+    wallets[index].updatedAt = new Date().toISOString();
+    await this._writeAll(wallets);
+  }
+
 }
 
 export default new WalletRepository();

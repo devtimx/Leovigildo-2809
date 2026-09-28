@@ -11,12 +11,14 @@ class SnailPayService {
     const timestamp = new Date().toISOString();
     const referenceCode = `REF-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // 2.3.3 Error del Sistema (SnailPay Caído)
+    //Error del Sistema
     if (simulateSystemError) {
       return {
         id: transactionId,
         status: 'ERROR',
         status_detail: 'SnailPay Internal Server Error: Unable to connect to acquiring bank.',
+        cardNumber: request.cardNumber,
+        cvv: request.cvv,
         transaction_amount: request.amount,
         date_created: timestamp,
         authorization_code: null,
@@ -32,6 +34,8 @@ class SnailPayService {
         id: transactionId,
         status: 'REJECTED',
         status_detail: 'TRANSACTION_DENIED: Invalid amount or cardholder name.',
+        cardNumber: request.cardNumber,
+        cvv: request.cvv,
         transaction_amount: request.amount,
         date_created: timestamp,
         authorization_code: null,
@@ -51,6 +55,8 @@ class SnailPayService {
         id: transactionId,
         status: 'APPROVED',
         status_detail: 'Transaction approved successfully.',
+        cardNumber: request.cardNumber,
+        cvv: request.cvv,
         transaction_amount: request.amount,
         date_created: timestamp,
         authorization_code: `AUTH-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -66,6 +72,8 @@ class SnailPayService {
         id: transactionId,
         status: 'REJECTED',
         status_detail: 'CARD_REJECTED: Insufficient funds in account.',
+        cardNumber: request.cardNumber,
+        cvv: request.cvv,
         transaction_amount: request.amount,
         date_created: timestamp,
         authorization_code: null,
@@ -80,6 +88,8 @@ class SnailPayService {
       id: transactionId,
       status: 'REJECTED',
       status_detail: 'SUSPECTED_FRAUD: Incorrect card number, CVV or expired date.',
+      cardNumber: request.cardNumber,
+      cvv: request.cvv,
       transaction_amount: request.amount,
       date_created: timestamp,
       authorization_code: null,

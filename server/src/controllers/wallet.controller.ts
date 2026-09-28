@@ -3,15 +3,13 @@ import { AuthenticatedRequest } from '../middlewares/auth.midleware.js';
 import snailPayService from '../services/snailpay.service.js';
 import walletRepository from '../repositories/wallet.repository.js';
 import userRepository from '../repositories/user.repository.js';
+import { ENV } from '../config/env.js';
 
 class WalletController {
   async deposit(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.userId!;
       const { cardNumber, expiryDate, cvv, fullName, amount } = req.body;
-      
-      // Permitimos gatillar el error de sistema enviando una flag en los query params (?force_error=true)
-      const forceSystemError = req.query.force_error === 'true';
 
       // Obtener el correo del usuario autenticado para SnailPay
       const user = await userRepository.findById(userId);
@@ -29,7 +27,7 @@ class WalletController {
         amount: Number(amount),
         payerId: userId,
         payerEmail: user.email
-      }, forceSystemError);
+      }, ENV.FORCE_ERROR);
 
       // 2. Si es rechazado o hay error de sistema, devolvemos la respuesta detallada sin alterar saldos
       if (paymentResponse.status !== 'APPROVED') {

@@ -3,6 +3,8 @@ import cors from 'cors';
 import { apiReference } from '@scalar/express-api-reference';
 import authRoutes from './routes/auth.routes.js';
 import walletRoutes from './routes/wallet.routes.js';
+import raceRoutes from './routes/race.routes.js';
+import betRoutes from './routes/bet.routes.js';
 
 const app = express();
 
@@ -81,6 +83,20 @@ app.use(
               }
             }
           },
+          '/api/auth/logout': {
+            post: {
+              summary: 'Cerrar sesión de usuario',
+              description: 'Invalida la sesión actual. Requiere enviar el token JWT en la cabecera Authorization: Bearer <token>',
+              responses: {
+                200: {
+                  description: 'Cierre de sesión exitoso.'
+                },
+                401: {
+                  description: 'No autorizado / Token no proporcionado o inválido.'
+                }
+              }
+            }
+          },
           '/api/wallet/balance': {
             get: {
               summary: 'Obtener balance y estadísticas de la billetera del usuario',
@@ -129,6 +145,53 @@ app.use(
                 401: { description: 'No autorizado / Token inválido' }
               }
             }
+          },
+          '/api/races': {
+            get: {
+              summary: 'Obtener la lista de carreras activas y sus competidores',
+              description: 'Requiere Token JWT en la cabecera Authorization: Bearer <token>',
+              responses: {
+                200: { description: 'Devuelve la lista de carreras activas y sus competidores' },
+                401: { description: 'No autorizado / Token inválido' }
+              }
+            }
+          },
+          '/api/bets': {
+            post: {
+              summary: 'Registrar un ticket de apuesta',
+              description: 'Descuenta saldo de la wallet y genera un ticket PENDING. Requiere JWT Bearer Token.',
+              requestBody: {
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        raceId: { type: 'string', example: 'uuid-de-la-carrera' },
+                        raceNumber: { type: 'number', example: 1 },
+                        competitorId: { type: 'string', example: 'c1' },
+                        competitorName: { type: 'string', example: 'Rayo Veloz' },
+                        competitorNumber: { type: 'number', example: 1 },
+                        amount: { type: 'number', example: 50 }
+                      },
+                      required: ['raceId', 'raceNumber', 'competitorId', 'competitorName', 'competitorNumber', 'amount']
+                    }
+                  }
+                }
+              },
+              responses: {
+                201: { description: 'Apuesta creada y saldo retenido con éxito' },
+                400: { description: 'Saldo insuficiente o la carrera ya no acepta apuestas' }
+              }
+            }
+          },
+          '/api/bets/my-bets': {
+            get: {
+              summary: 'Obtener el historial de apuestas del usuario autenticado',
+              responses: {
+                200: { description: 'Lista de apuestas del usuario.' }
+              }
+            }
           }
         }
       }
@@ -139,6 +202,8 @@ app.use(
 // Rutas de la Aplicación
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/races', raceRoutes);
+app.use('/api/bets', betRoutes);
 
 // Middleware global de manejo de errores (Tipado estrictamente)
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

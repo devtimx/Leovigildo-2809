@@ -1,4 +1,6 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 import userRepository from '../repositories/user.repository.js'; // Extensión .js requerida
 import walletRepository from '../repositories/wallet.repository.js';
 import { ENV } from '../config/env.js';
@@ -21,8 +23,14 @@ class AuthService {
       throw new Error('EL_USUARIO_YA_EXISTE');
     }
 
+    // Hasheamos la contraseña con un factor de costo de 10 (estándar seguro)
+    const hashedPassword = await bcrypt.hash(userData.password!, 10);
+
     // El repositorio guarda en el JSON y retorna el usuario sin contraseña
-    const userWithoutPassword = await userRepository.create(userData);
+    const userWithoutPassword = await userRepository.create({
+      ...userData,
+      password: hashedPassword
+    });
 
     // Inicializa la wallet del usuario en ceros (balance, apuestas ganadas/perdidas)
     const existingWallet = await walletRepository.findByUserId(userWithoutPassword.id);
@@ -47,8 +55,9 @@ class AuthService {
       throw new Error('CREDENCIALES_INVALIDAS');
     }
 
-    // Validación de contraseña en texto plano (suficiente para el alcance de esta prueba técnica local)
-    if (user.password !== password) {
+    //Comparamos la contraseña en texto plano con el hash guardado en el JSON
+    const isPasswordValid = await bcrypt.compare(password!, user.password || '');
+    if (!isPasswordValid) {
       throw new Error('CREDENCIALES_INVALIDAS');
     }
 
@@ -69,7 +78,7 @@ class AuthService {
   private generateToken(userId: string): string {
     // Si ENV.JWT_SECRET no existe, usamos un fallback seguro para evitar caídas en desarrollo
     const secret = ENV.JWT_SECRET || 'fallback_secret_key_12345';
-    return jwt.sign({ id: userId }, secret, { expiresIn: '2h' });
+    return jwt.sign({ id: userId, jti: uuidv4() }, secret, { expiresIn: '2h' });
   }
 }
 
