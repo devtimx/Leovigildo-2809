@@ -1,7 +1,7 @@
 
 
 
-sistema-apuestas-carreras/
+````sistema-apuestas-carreras/
 ├── client/                      # FRONTEND (React + Vite)
 │   ├── src/
 │   │   ├── components/          # Componentes visuales (Tarjetas de carreras, botones)
@@ -53,3 +53,4 @@ sistema-apuestas-carreras/
 │   │   └── app.js
 │   ├── index.js
 │   └── package.json
+````

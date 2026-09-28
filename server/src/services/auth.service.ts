@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import userRepository from '../repositories/user.repository.js'; // Extensión .js requerida
+import walletRepository from '../repositories/wallet.repository.js';
 import { ENV } from '../config/env.js';
 import { User, UserCreationData } from '../types/index.js';
 
@@ -22,6 +23,13 @@ class AuthService {
 
     // El repositorio guarda en el JSON y retorna el usuario sin contraseña
     const userWithoutPassword = await userRepository.create(userData);
+
+    // Inicializa la wallet del usuario en ceros (balance, apuestas ganadas/perdidas)
+    const existingWallet = await walletRepository.findByUserId(userWithoutPassword.id);
+    if (!existingWallet) {
+      await walletRepository.create(userWithoutPassword.id);
+    }
+
     const token = this.generateToken(userWithoutPassword.id);
 
     return {

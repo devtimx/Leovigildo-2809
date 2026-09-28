@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { apiReference } from '@scalar/express-api-reference';
-import authRoutes from './routes/auth.routes.js'; 
+import authRoutes from './routes/auth.routes.js';
 import walletRoutes from './routes/wallet.routes.js';
 
 const app = express();
@@ -11,7 +11,7 @@ app.use(express.json());
 
 // Configuración de Documentación OpenAPI con Scalar
 app.use(
-  '/reference',
+  '/scalar',
   apiReference({
     spec: {
       content: {
@@ -21,6 +21,16 @@ app.use(
           version: '1.0.0',
           description: 'Documentación interactiva de la API con Scalar y TypeScript.',
         },
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT'
+            }
+          }
+        },
+        security: [{ bearerAuth: [] }],
         paths: {
           '/api/auth/register': {
             post: {
@@ -68,6 +78,55 @@ app.use(
               responses: {
                 200: { description: 'Autenticación exitosa, retorna token JWT' },
                 401: { description: 'Credenciales inválidas' }
+              }
+            }
+          },
+          '/api/wallet/balance': {
+            get: {
+              summary: 'Obtener balance y estadísticas de la billetera del usuario',
+              description: 'Requiere Token JWT en la cabecera Authorization: Bearer <token>',
+              responses: {
+                200: { description: 'Devuelve el balance actual, apuestas ganadas y perdidas.' },
+                401: { description: 'No autorizado / Token inválido' },
+                404: { description: 'Billetera no encontrada' }
+              }
+            }
+          },
+          '/api/wallet/deposit': {
+            post: {
+              summary: 'Realizar una recarga de saldo simulada con SnailPay',
+              description: 'Requiere Token JWT. Permite simular caídas de sistema usando el query param ?force_error=true',
+              parameters: [
+                {
+                  name: 'force_error',
+                  in: 'query',
+                  description: 'Si se envía como true, fuerza un error interno simulado de SnailPay (Error 2.3.3)',
+                  required: false,
+                  schema: { type: 'boolean', example: false }
+                }
+              ],
+              requestBody: {
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        cardNumber: { type: 'string', description: 'Usa 1234123412341234 para cobro exitoso', example: '1234123412341234' },
+                        expiryDate: { type: 'string', example: '12/26' },
+                        cvv: { type: 'string', example: '543' },
+                        fullName: { type: 'string', example: 'Cosme Fulanito' },
+                        amount: { type: 'number', description: 'Debe ser mayor a 0', example: 150 }
+                      },
+                      required: ['cardNumber', 'expiryDate', 'cvv', 'fullName', 'amount']
+                    }
+                  }
+                }
+              },
+              responses: {
+                200: { description: 'Cobro exitoso, saldo actualizado e incrementado' },
+                400: { description: 'Transacción rechazada por SnailPay o Error del Sistema simulado' },
+                401: { description: 'No autorizado / Token inválido' }
               }
             }
           }

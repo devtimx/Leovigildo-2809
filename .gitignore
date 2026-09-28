@@ -25,6 +25,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# App data (JSON database)
+server/src/database/data/
+
 # Testing / coverage
 coverage/
 .nyc_output/
