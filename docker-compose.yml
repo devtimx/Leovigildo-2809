@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # --- BACKEND (Express + TS) ---
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: apuestas_backend
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - JWT_SECRET=TuPalabraSecretaSuperSeguraParaLosTokensDeApuestas123!
+      - NODE_ENV=production
+    volumes:
+      # Persiste la base de datos local JSON fuera del contenedor
+      - ./server/src/database/data:/usr/src/app/dist/database/data
+
+  # --- FRONTEND (React + Vite) ---
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: apuestas_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

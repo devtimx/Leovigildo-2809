@@ -1,0 +1,30 @@
+# --- Stage 1: Build (Compilación de TS a JS) ---
+FROM node:18-alpine AS builder
+WORKDIR /usr/src/app
+
+# Copiar archivos de configuración de dependencias y TypeScript
+COPY package*.json tsconfig.json ./
+RUN npm install
+
+# Copiar el código fuente
+COPY . .
+
+# Compilar el proyecto (ejecuta tsc y genera la carpeta ./dist)
+RUN npm run build
+
+# --- Stage 2: Runner (Entorno de producción ligero) ---
+FROM node:18-alpine
+WORKDIR /usr/src/app
+
+# Copiar solo el package.json para instalar dependencias limpias de producción
+COPY package*.json ./
+RUN npm install --only=production
+
+# Copiar los archivos compilados (.js) desde el stage de build
+COPY --from=builder /usr/src/app/dist ./dist
+
+# Exponer el puerto de Express
+EXPOSE 4000
+
+# Ejecutar el código compilado
+CMD ["node", "dist/index.js"]
