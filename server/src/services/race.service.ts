@@ -20,6 +20,10 @@ const DEFAULT_COMPETITORS: Competitor[] = [
 class RaceSimulatorService {
   private isRunningSystem = false;
 
+  getCompetitors(): Competitor[] {
+    return [...DEFAULT_COMPETITORS];
+  }
+
   async initializeDailyRaces(): Promise<void> {
     const existingRaces = await raceRepository.readAll();
     if (existingRaces.length > 0) {
@@ -55,7 +59,13 @@ class RaceSimulatorService {
       const races = await raceRepository.readAll();
       const nextRace = races.find(r => r.status === 'SCHEDULED');
 
-      if (nextRace) {
+      // Si todas terminaron, generar una nueva tanda tras una pausa
+      if (!nextRace && races.length > 0 && races.every(r => r.status === 'FINISHED')) {
+        const lastUpdate = Math.max(...races.map(r => new Date(r.updatedAt).getTime()));
+        if (Date.now() - lastUpdate >= RACE_INTERVAL_MS) {
+          await this.resetRaces();
+        }
+      } else if (nextRace) {
         const timeUntilRace = new Date(nextRace.scheduledTime).getTime() - Date.now();
         if (timeUntilRace <= 0) {
           await this.executeRace(nextRace);
@@ -65,6 +75,22 @@ class RaceSimulatorService {
     };
 
     loop();
+  }
+
+  private async resetRaces(): Promise<void> {
+    const races = await raceRepository.readAll();
+    const now = Date.now();
+
+    const updatedRaces = races.map((race, index) => ({
+      ...race,
+      status: 'SCHEDULED' as const,
+      scheduledTime: new Date(now + (index + 1) * RACE_INTERVAL_MS).toISOString(),
+      results: [],
+      updatedAt: new Date().toISOString()
+    }));
+
+    await raceRepository.writeAll(updatedRaces);
+    console.log('Nueva tanda de carreras generada.');
   }
 
   private async executeRace(race: Race): Promise<void> {
