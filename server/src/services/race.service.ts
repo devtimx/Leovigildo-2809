@@ -3,9 +3,10 @@ import raceRepository from '../repositories/race.repository.js';
 import betRepository from '../repositories/bet.repository.js';
 import walletRepository from '../repositories/wallet.repository.js';
 import { Race, Competitor, RaceResult } from '../types/index.js';
+import { ENV } from '../config/env.js';
 
-const RACE_INTERVAL_MS = Number(process.env.RACE_INTERVAL_MS) || 15000; 
-const DURATION_OF_RACE_MS = Number(process.env.RACE_DURATION_MS) || 5000; 
+const RACE_INTERVAL_MS = ENV.RACE_INTERVAL_MS;
+const DURATION_OF_RACE_MS = ENV.DURATION_OF_RACE_MS;
 const ODDS_MULTIPLIER = 3; // Cuánto paga la apuesta (Ej: Si apuesta 100, recibe 300)
 
 const DEFAULT_COMPETITORS: Competitor[] = [

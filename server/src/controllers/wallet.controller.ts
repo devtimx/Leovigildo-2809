@@ -17,6 +17,9 @@ class WalletController {
         res.status(404).json({ message: 'Usuario no encontrado.' });
         return;
       }
+      // La caída de SnailPay se activa con la variable de entorno FORCE_ERROR=true en .env;
+      // el query param ?force_error=true queda como alternativa documentada en la API
+      const forceSystemError = ENV.FORCE_ERROR || req.query.force_error === 'true';
 
       // 1. Invocar el simulador aislado de SnailPay
       const paymentResponse = await snailPayService.processPayment({
@@ -27,7 +30,7 @@ class WalletController {
         amount: Number(amount),
         payerId: userId,
         payerEmail: user.email
-      }, ENV.FORCE_ERROR);
+      }, forceSystemError);
 
       // 2. Si es rechazado o hay error de sistema, devolvemos la respuesta detallada sin alterar saldos
       if (paymentResponse.status !== 'APPROVED') {

@@ -163,6 +163,25 @@ docker compose down            # detener y eliminar contenedores
 
 ## Variables de entorno
 
+### Cómo llenar el `.env`
+
+Los archivos `.env` reales están en `.gitignore` (no se suben al repositorio); para el repositorio público se incluyen los ejemplos:
+
+| Modo | Archivo ejemplo | Copiar como |
+|------|-----------------|-------------|
+| Local | `server/.env.example` | `server/.env` |
+| Docker | `.env.example` (raíz) | `.env` (raíz) |
+
+```bash
+# Local
+cp server/.env.example server/.env     # Windows: copy server\.env.example server\.env
+
+# Docker (desde la raíz)
+cp .env.example .env                   # Windows: copy .env.example .env
+```
+
+Edita los valores según necesidad y reinicia el backend (`npm run dev` o `docker compose up -d backend`). Todas las variables son opcionales: `env.ts` aplica valores por defecto si no existen.
+
 ### Server (`server/.env`, opcional — todos tienen valores por defecto)
 
 | Variable | Default | Descripción |
@@ -173,6 +192,10 @@ docker compose down            # detener y eliminar contenedores
 | `FORCE_ERROR` | `false` | Fuerza error simulado de la pasarela de pago en todo depósito |
 | `RACE_INTERVAL_MS` | `15000` | Intervalo entre carreras (ms) |
 | `DURATION_OF_RACE_MS` | `5000` | Duración de cada carrera (ms) |
+
+> **Docker:** el backend no lee `server/.env`; `FORCE_ERROR`, `RACE_INTERVAL_MS` y `DURATION_OF_RACE_MS` se inyectan desde `docker-compose.yml` tomando sus valores del `.env` de la raíz (con fallback a los mismos valores por defecto). Tras cambiarlos: `docker compose up -d backend`.
+>
+> **Simulación de caída de SnailPay (error 2.3.3):** `FORCE_ERROR=true` en `.env` + reinicio detonan la falla en todo depósito; el query `?force_error=true` queda como alternativa.
 
 ### Client (`client/.env`, opcional)
 

@@ -11,6 +11,9 @@ services:
       - PORT=4000
       - JWT_SECRET=TuPalabraSecretaSuperSeguraParaLosTokensDeApuestas123!
       - NODE_ENV=production
+      - FORCE_ERROR=${FORCE_ERROR:-false}
+      - RACE_INTERVAL_MS=${RACE_INTERVAL_MS:-15000}
+      - DURATION_OF_RACE_MS=${DURATION_OF_RACE_MS:-5000}
     volumes:
       # Persiste la base de datos local JSON fuera del contenedor
       - ./server/src/database/data:/usr/src/app/dist/database/data
