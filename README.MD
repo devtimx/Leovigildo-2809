@@ -110,12 +110,34 @@ App disponible en `http://localhost:5173`. El `vite.config.js` incluye un **prox
 | `npm run build` | server/client | Compila TypeScript / bundle de producción |
 | `npm start` | server | Ejecuta la build compilada (`dist/index.js`) |
 | `npm run lint` | client | Lint con oxlint |
+| `npm run test` | client | Tests unitarios con Vitest (auth y wallet) |
+| `npm run test:watch` | client | Tests en modo watch (recarga en caliente) |
 | `npx tsc --noEmit` | server/client | Typecheck sin generar archivos |
+
+### Tests unitarios
+
+El frontend incluye tests con **Vitest + Testing Library (jsdom)** en `client/src/__tests__/`:
+
+- `auth.service.test.ts` — endpoints de login/register/logout y manejo de errores
+- `wallet.service.test.ts` — endpoints de balance/depósito (incluido `?force_error=true`)
+- `AuthContext.test.tsx` — sesión: login, register, logout, hidratación desde `localStorage` y limpieza aunque falle el servidor
+- `WalletContext.test.tsx` — carga del balance, estado inicial en ceros y manejo de errores
+
+```bash
+cd client
+npm run test          # una corrida
+npm run test:watch    # modo watch
+```
 
 ## Ejecución con Docker (contenedores)
 
 ```bash
 docker compose up -d --build
+```
+Si utilizas entornos Linux o versiones específicas de Docker donde falle la compilación por rutas, ejecuta:
+
+```bash
+DOCKER_BUILDKIT=0 docker compose up -d --build
 ```
 
 Esto construye y levanta:
